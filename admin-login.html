@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login - Code Sync</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #d464ff;
+        --secondary: #64c8ff;
+        --dark: #0f0c29;
+        --darker: #1a1a2e;
+        --light: #ffffff;
+        --accent: #24243e;
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(50px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      @keyframes glow {
+        0%, 100% { text-shadow: 0 0 10px rgba(212, 100, 255, 0.5); }
+        50% { text-shadow: 0 0 20px rgba(212, 100, 255, 0.8); }
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: linear-gradient(-45deg, var(--dark), #302b63, var(--accent), var(--darker));
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .security-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(212, 100, 255, 0.05) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(100, 200, 255, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .back-button {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        background: rgba(212, 100, 255, 0.2);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 100;
+      }
+
+      .back-button:hover {
+        background: rgba(212, 100, 255, 0.3);
+        transform: translateX(-5px);
+      }
+
+      .login-wrapper {
+        width: 100%;
+        max-width: 500px;
+        animation: slideInRight 0.6s ease-out;
+      }
+
+      .login-container {
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(212, 100, 255, 0.3);
+        border-radius: 20px;
+        padding: 60px 40px;
+        box-shadow: 0 8px 32px rgba(212, 100, 255, 0.15),
+                    inset 0 0 20px rgba(212, 100, 255, 0.05);
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+
+      .login-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary), #e680ff);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin: 0 auto 20px;
+        box-shadow: 0 4px 15px rgba(212, 100, 255, 0.3);
+      }
+
+      .login-container h1 {
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), #e680ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        animation: glow 3s ease-in-out infinite;
+      }
+
+      .login-container .subtitle {
+        font-size: 0.95rem;
+        color: #c4a8ff;
+        margin-bottom: 0;
+      }
+
+      .security-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(212, 100, 255, 0.1);
+        border: 1px solid rgba(212, 100, 255, 0.3);
+        padding: 6px 12px;
+        border-radius: 20px;
+        margin-top: 15px;
+        font-size: 0.75rem;
+        color: #d464ff;
+        font-weight: 600;
+      }
+
+      .security-badge::before {
+        content: '🔒';
+        font-size: 0.9rem;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .form-group .field-hint {
+        font-size: 0.75rem;
+        font-weight: normal;
+        color: #c4a8ff;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid rgba(212, 100, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px rgba(212, 100, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        font-size: 0.85rem;
+      }
+
+      .remember-forgot a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .remember-forgot a:hover {
+        color: #e680ff;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #c4a8ff;
+      }
+
+      .checkbox-group input {
+        width: auto;
+        cursor: pointer;
+        accent-color: var(--primary);
+      }
+
+      .checkbox-group label {
+        cursor: pointer;
+        margin: 0;
+        color: #c4a8ff;
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 14px;
+        margin-bottom: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-login-primary {
+        background: linear-gradient(135deg, var(--primary), #e680ff);
+        color: var(--light);
+        border: 2px solid var(--primary);
+      }
+
+      .btn-login-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 100, 255, 0.4);
+      }
+
+      .btn-login-secondary {
+        background: rgba(212, 100, 255, 0.1);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+      }
+
+      .btn-login-secondary:hover {
+        background: rgba(212, 100, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .support-link {
+        text-align: center;
+        margin-top: 20px;
+        color: #c4a8ff;
+        font-size: 0.9rem;
+      }
+
+      .support-link a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+      }
+
+      .support-link a:hover {
+        color: #e680ff;
+      }
+
+      .error {
+        background: rgba(255, 50, 50, 0.2);
+        border: 1px solid #ff3232;
+        color: #ff6b6b;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .error.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .success {
+        background: rgba(50, 200, 100, 0.2);
+        border: 1px solid #32c864;
+        color: #6bff8b;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .success.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      @media (max-width: 600px) {
+        .login-container {
+          padding: 40px 25px;
+        }
+
+        .login-container h1 {
+          font-size: 1.5rem;
+        }
+
+        .back-button {
+          padding: 8px 15px;
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="security-overlay"></div>
+    <a href="/" class="back-button">← Back to Home</a>
+
+    <div class="container">
+      <div class="login-wrapper">
+        <div class="login-container">
+          <div class="login-header">
+            <div class="login-icon">🔐</div>
+            <h1>Admin Login</h1>
+            <p class="subtitle">Secure workspace administration</p>
+            <div class="security-badge">Enterprise Security</div>
+          </div>
+
+          <form onsubmit="handleAdminLogin(event)">
+            <div class="error" id="errorMessage"></div>
+            <div class="success" id="successMessage"></div>
+
+            <div class="form-group">
+              <label for="adminId">
+                Admin ID / Email
+                <span class="field-hint">Required</span>
+              </label>
+              <input type="text" id="adminId" placeholder="admin@workspace.com" required>
+            </div>
+
+            <div class="form-group">
+              <label for="adminPassword">
+                Master Password
+                <span class="field-hint">8+ characters</span>
+              </label>
+              <input type="password" id="adminPassword" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+              <label for="securityToken">
+                Security Token
+                <span class="field-hint">From your authenticator</span>
+              </label>
+              <input type="text" id="securityToken" placeholder="000000" maxlength="6" required>
+            </div>
+
+            <div class="remember-forgot">
+              <div class="checkbox-group">
+                <input type="checkbox" id="rememberAdmin">
+                <label for="rememberAdmin">Trusted device</label>
+              </div>
+              <a href="/admin-support.html">Need help?</a>
+            </div>
+
+            <button type="submit" class="btn-login btn-login-primary">Admin Access</button>
+          </form>
+
+          <button class="btn-login btn-login-secondary" onclick="window.location.href='/'">Cancel</button>
+
+          <div class="support-link">
+            Lost access? <a href="/admin-recovery.html">Recover your account</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Load remembered credentials
+      window.addEventListener('load', () => {
+        const adminId = localStorage.getItem('adminId');
+        if (adminId) {
+          document.getElementById('adminId').value = adminId;
+          document.getElementById('rememberAdmin').checked = true;
+        }
+      });
+
+      function showError(message) {
+        const errorEl = document.getElementById('errorMessage');
+        errorEl.textContent = message;
+        errorEl.classList.add('show');
+        setTimeout(() => errorEl.classList.remove('show'), 5000);
+      }
+
+      function showSuccess(message) {
+        const successEl = document.getElementById('successMessage');
+        successEl.textContent = message;
+        successEl.classList.add('show');
+      }
+
+      function handleAdminLogin(e) {
+        e.preventDefault();
+        
+        const adminId = document.getElementById('adminId').value;
+        const adminPassword = document.getElementById('adminPassword').value;
+        const securityToken = document.getElementById('securityToken').value;
+        const rememberAdmin = document.getElementById('rememberAdmin').checked;
+
+        if (!adminId || !adminPassword || !securityToken) {
+          showError('Please fill in all required fields');
+          return;
+        }
+
+        if (!adminId.includes('@')) {
+          showError('Please enter a valid admin email address');
+          return;
+        }
+
+        if (adminPassword.length < 8) {
+          showError('Master password must be at least 8 characters');
+          return;
+        }
+
+        if (securityToken.length !== 6 || isNaN(securityToken)) {
+          showError('Security token must be 6 digits');
+          return;
+        }
+
+        // Store admin session
+        localStorage.setItem('userRole', 'admin');
+        localStorage.setItem('adminId', adminId);
+        if (rememberAdmin) {
+          localStorage.setItem('rememberAdmin', 'true');
+        } else {
+          localStorage.removeItem('rememberAdmin');
+        }
+        localStorage.setItem('adminLoginTime', new Date().getTime());
+
+        showSuccess('Admin access granted! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/admin-dashboard.html';
+        }, 1500);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Code Input - Code Sync</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #64c8ff;
+        --secondary: #d464ff;
+        --dark: #0f0c29;
+        --darker: #1a1a2e;
+        --light: #ffffff;
+        --accent: #24243e;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: linear-gradient(-45deg, var(--dark), #302b63, var(--accent), var(--darker));
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+        color: var(--light);
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        margin-top: 20px;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        color: #b0d4ff;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .section {
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.1);
+      }
+
+      .section h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        border-bottom: 2px solid rgba(100, 200, 255, 0.2);
+        padding-bottom: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      #codeInput {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        resize: vertical;
+        min-height: 250px;
+        transition: all 0.3s ease;
+      }
+
+      #codeInput:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      #codeInput::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+      }
+
+      .btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        flex: 1;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #4db8ff);
+        color: var(--dark);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #e680ff);
+        color: var(--light);
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 100, 255, 0.4);
+      }
+
+      .btn-clear {
+        background: rgba(255, 100, 100, 0.2);
+        border: 2px solid rgba(255, 100, 100, 0.5);
+        color: #ff6b6b;
+      }
+
+      .btn-clear:hover {
+        background: rgba(255, 100, 100, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .output-section {
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.1);
+      }
+
+      .output-section h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        border-bottom: 2px solid rgba(100, 200, 255, 0.2);
+        padding-bottom: 10px;
+      }
+
+      #outputDisplay {
+        background: rgba(20, 20, 35, 0.9);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--primary);
+        max-height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 100px;
+      }
+
+      .empty-state {
+        color: rgba(255, 255, 255, 0.5);
+        text-align: center;
+        padding: 40px 20px;
+        font-style: italic;
+      }
+
+      .success-message {
+        background: rgba(50, 200, 100, 0.2);
+        border: 1px solid rgba(50, 200, 100, 0.5);
+        color: #6bff8b;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: none;
+      }
+
+      .success-message.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .back-button {
+        display: inline-block;
+        background: rgba(100, 200, 255, 0.2);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 10px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .back-button:hover {
+        background: rgba(100, 200, 255, 0.3);
+        transform: translateX(-5px);
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .button-group {
+          flex-direction: column;
+        }
+      }
+
+      /* Scrollbar styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(100, 200, 255, 0.1);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(100, 200, 255, 0.3);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 200, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/" class="back-button">← Back to Home</a>
+      
+      <div class="header">
+        <h1>📝 Project Code Input</h1>
+        <p>Type or paste your project code and get it displayed cleanly</p>
+      </div>
+
+      <div class="content">
+        <!-- INPUT SECTION -->
+        <div class="section">
+          <h2>Project Details</h2>
+          
+          <div class="form-group">
+            <label for="projectName">Project Name</label>
+            <input 
+              type="text" 
+              id="projectName" 
+              placeholder="Enter your project name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="projectDescription">Description</label>
+            <input 
+              type="text" 
+              id="projectDescription" 
+              placeholder="Enter project description"
+            />
+          </div>
+
+          <h2 style="margin-top: 30px;">Code</h2>
+          <div class="form-group">
+            <label for="codeInput">Enter Your Code</label>
+            <textarea 
+              id="codeInput" 
+              placeholder="Paste or type your project code here..."
+            ></textarea>
+          </div>
+
+          <div class="button-group">
+            <button class="btn btn-primary" onclick="getCode()">Get Code</button>
+            <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+          </div>
+        </div>
+
+        <!-- OUTPUT SECTION -->
+        <div class="section">
+          <h2>Your Code Output</h2>
+          <div class="success-message" id="successMessage">✓ Code retrieved successfully!</div>
+          <div id="outputDisplay" class="empty-state">
+            Your code will appear here...
+          </div>
+          <button class="btn btn-secondary" onclick="copyCode()" style="margin-top: 15px; width: 100%;">Copy Code</button>
+        </div>
+      </div>
+
+      <!-- FULL OUTPUT SECTION -->
+      <div class="output-section">
+        <h2>Full Project Summary</h2>
+        <div id="fullSummary" class="empty-state">
+          Complete project information will display here after you submit your code.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function getCode() {
+        const projectName = document.getElementById('projectName').value;
+        const projectDescription = document.getElementById('projectDescription').value;
+        const codeInput = document.getElementById('codeInput').value;
+        const outputDisplay = document.getElementById('outputDisplay');
+        const successMessage = document.getElementById('successMessage');
+        const fullSummary = document.getElementById('fullSummary');
+
+        if (!codeInput.trim()) {
+          alert('Please enter some code first!');
+          return;
+        }
+
+        // Display the code in output
+        outputDisplay.textContent = codeInput;
+        outputDisplay.className = '';
+
+        // Show success message
+        successMessage.classList.add('show');
+        setTimeout(() => {
+          successMessage.classList.remove('show');
+        }, 3000);
+
+        // Display full summary
+        const summary = `
+PROJECT NAME: ${projectName || 'Untitled Project'}
+DESCRIPTION: ${projectDescription || 'No description provided'}
+CODE LENGTH: ${codeInput.length} characters
+LINES: ${codeInput.split('\n').length} lines
+DATE: ${new Date().toLocaleString()}
+
+───────────────── CODE ─────────────────
+
+${codeInput}
+        `;
+        fullSummary.textContent = summary;
+        fullSummary.className = '';
+      }
+
+      function clearAll() {
+        if (confirm('Are you sure you want to clear everything?')) {
+          document.getElementById('projectName').value = '';
+          document.getElementById('projectDescription').value = '';
+          document.getElementById('codeInput').value = '';
+          document.getElementById('outputDisplay').innerHTML = '<div class="empty-state">Your code will appear here...</div>';
+          document.getElementById('fullSummary').innerHTML = '<div class="empty-state">Complete project information will display here after you submit your code.</div>';
+        }
+      }
+
+      function copyCode() {
+        const outputDisplay = document.getElementById('outputDisplay');
+        const codeText = outputDisplay.textContent;
+
+        if (codeText.includes('Your code will appear here')) {
+          alert('Please enter code first!');
+          return;
+        }
+
+        navigator.clipboard.writeText(codeText).then(() => {
+          alert('✓ Code copied to clipboard!');
+        }).catch(() => {
+          alert('Failed to copy code');
+        });
+      }
+
+      // Allow Tab key in textarea
+      document.getElementById('codeInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 1;
+        }
+      });
+    </script>
+  </body>
+</html>

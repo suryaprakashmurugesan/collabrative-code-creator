@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Editor - Real-time Collaborative Code Editor</title>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: #1a1a2e;
+        color: white;
+      }
+
+      .header {
+        background: rgba(20, 20, 35, 0.9);
+        backdrop-filter: blur(10px);
+        border-bottom: 2px solid rgba(100, 200, 255, 0.2);
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        position: sticky;
+        top: 0;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #64c8ff, #d464ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .user-info {
+        background: rgba(100, 200, 255, 0.1);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #64c8ff;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .btn-logout {
+        background: rgba(255, 100, 100, 0.2);
+        border: 1px solid rgba(255, 100, 100, 0.5);
+        color: #ff6b6b;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-logout:hover {
+        background: rgba(255, 100, 100, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .btn-new-project {
+        background: linear-gradient(135deg, #64c8ff, #4db8ff);
+        border: 1px solid #64c8ff;
+        color: #1a1a2e;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn-new-project:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(100, 200, 255, 0.4);
+      }
+
+      /* MODAL STYLES */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        background: rgba(42, 45, 56, 0.95);
+        border: 2px solid rgba(100, 200, 255, 0.3);
+        border-radius: 15px;
+        padding: 40px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.2);
+        position: relative;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 100, 100, 0.2);
+        border: 1px solid rgba(255, 100, 100, 0.5);
+        color: #ff6b6b;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 100, 100, 0.3);
+      }
+
+      .modal-content h2 {
+        color: #64c8ff;
+        margin-bottom: 25px;
+        font-size: 1.8rem;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #64c8ff;
+        font-weight: 600;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-size: 1rem;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #64c8ff;
+        box-shadow: 0 0 10px rgba(100, 200, 255, 0.2);
+      }
+
+      .template-preview {
+        background: rgba(20, 20, 35, 0.8);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .template-preview h4 {
+        color: #64c8ff;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+
+      .template-preview pre {
+        color: #b0d4ff;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+      }
+
+      .btn-modal-primary {
+        flex: 1;
+        padding: 12px;
+        background: linear-gradient(135deg, #64c8ff, #4db8ff);
+        border: 1px solid #64c8ff;
+        color: #1a1a2e;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-modal-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-modal-secondary {
+        flex: 1;
+        padding: 12px;
+        background: rgba(100, 200, 255, 0.1);
+        border: 1px solid #64c8ff;
+        color: #64c8ff;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-modal-secondary:hover {
+        background: rgba(100, 200, 255, 0.2);
+      }
+
+      #root {
+        height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4caf50;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .status-dot.disconnected {
+        background: #ff6b6b;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Code Generator Main Interface */
+      .code-generator-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        min-height: calc(100vh - 80px);
+        background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .generator-container {
+        text-align: center;
+        max-width: 700px;
+      }
+
+      .generator-icon {
+        font-size: 120px;
+        margin-bottom: 30px;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-30px); }
+      }
+
+      .generator-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #64c8ff, #d464ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .generator-subtitle {
+        font-size: 1.3rem;
+        color: #b0d4ff;
+        margin-bottom: 50px;
+        line-height: 1.6;
+      }
+
+      .btn-generate-large {
+        display: inline-block;
+        padding: 25px 80px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, #64c8ff, #4db8ff);
+        color: #0f0c29;
+        border: 3px solid #64c8ff;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.3);
+        z-index: 100;
+        position: relative;
+      }
+
+      .btn-generate-large:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 48px rgba(100, 200, 255, 0.5);
+      }
+
+      .btn-generate-large:active {
+        transform: translateY(-2px);
+      }
+      
+      .btn-generate-large:focus {
+        outline: none;
+      }
+
+      .code-generator-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        z-index: 5000;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .code-generator-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+      }
+
+      .code-generator-inner {
+        max-width: 900px;
+        width: 100%;
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.1);
+      }
+
+      .code-generator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .code-generator-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #64c8ff, #d464ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .btn-close-generator {
+        background: rgba(255, 100, 100, 0.2);
+        border: 2px solid rgba(255, 100, 100, 0.5);
+        color: #ff6b6b;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-close-generator:hover {
+        background: rgba(255, 100, 100, 0.3);
+        transform: rotate(90deg);
+      }
+
+      .code-input-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .code-input-section {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .code-input-section h3 {
+        color: #64c8ff;
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+      }
+
+      .code-input-section input {
+        padding: 15px;
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-size: 1rem;
+        margin-bottom: 10px;
+      }
+
+      .code-input-section input:focus {
+        outline: none;
+        border-color: #64c8ff;
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+      }
+
+      .code-output-area {
+        background: rgba(20, 20, 35, 0.9);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: #64c8ff;
+        max-height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 200px;
+      }
+
+      .code-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .code-buttons button {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        text-transform: uppercase;
+      }
+
+      .btn-gen-code {
+        background: linear-gradient(135deg, #64c8ff, #4db8ff);
+        color: #0f0c29;
+      }
+
+      .btn-gen-code:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-copy-gen {
+        background: linear-gradient(135deg, #d464ff, #e680ff);
+        color: white;
+      }
+
+      .btn-copy-gen:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 100, 255, 0.4);
+      }
+
+      @media (max-width: 768px) {
+        .code-input-area {
+          grid-template-columns: 1fr;
+        }
+
+        .generator-title {
+          font-size: 2.5rem;
+        }
+
+        .btn-generate-large {
+          padding: 20px 50px;
+          font-size: 1.3rem;
+        }
+      }
+
+      /* Editor View Styles */
+      .editor-view-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #1a1a2e;
+        z-index: 1001;
+        display: flex;
+        flex-direction: column;
+        animation: slideInUp 0.3s ease-out;
+      }
+
+      @keyframes slideInUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .editor-view-header {
+        background: rgba(20, 20, 35, 0.95);
+        border-bottom: 2px solid rgba(100, 200, 255, 0.2);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+      }
+
+      .editor-view-header h2 {
+        background: linear-gradient(135deg, #64c8ff, #d464ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+      }
+
+      .btn-close-editor {
+        background: rgba(255, 100, 100, 0.2);
+        border: 2px solid rgba(255, 100, 100, 0.5);
+        color: #ff6b6b;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-close-editor:hover {
+        background: rgba(255, 100, 100, 0.3);
+        transform: rotate(90deg);
+      }
+
+      .code-editor-display {
+        flex: 1;
+        background: rgba(10, 10, 20, 0.9);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        margin: 20px 30px;
+        padding: 25px;
+        overflow-y: auto;
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.8;
+        color: #64c8ff;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        border-radius: 8px;
+        box-shadow: 0 0 30px rgba(100, 200, 255, 0.1);
+      }
+
+      .editor-view-buttons {
+        display: flex;
+        gap: 15px;
+        padding: 20px 30px;
+        background: rgba(20, 20, 35, 0.95);
+        border-top: 2px solid rgba(100, 200, 255, 0.2);
+      }
+
+      .btn-copy-editor, .btn-download, .btn-new-gen {
+        flex: 1;
+        padding: 15px 25px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn-copy-editor {
+        background: linear-gradient(135deg, #d464ff, #e680ff);
+        color: white;
+      }
+
+      .btn-copy-editor:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 100, 255, 0.4);
+      }
+
+      .btn-download {
+        background: linear-gradient(135deg, #42b983, #52d9a1);
+        color: white;
+      }
+
+      .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(66, 185, 131, 0.4);
+      }
+
+      .btn-new-gen {
+        background: linear-gradient(135deg, #64c8ff, #4db8ff);
+        color: #0f0c29;
+      }
+
+      .btn-new-gen:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(100, 200, 255, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-left">
+        <div class="logo-text">💻 Code Sync</div>
+        <div class="connection-status">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="connectionStatus">Connected</span>
+        </div>
+      </div>
+      <div class="user-info">
+        User: <span id="userEmail">Guest</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- PROJECT MODAL - REMOVED -->
+
+    <!-- FULLSCREEN CODE GENERATOR -->
+    <div id="codeGeneratorFullscreen" class="code-generator-fullscreen" style="display: none;">
+      <div class="code-generator-content">
+        <div class="code-generator-inner">
+          <div class="code-generator-header">
+            <h1>⚡ Code Generator</h1>
+            <button class="btn-close-generator" onclick="document.getElementById('codeGeneratorFullscreen').style.display='none';">×</button>
+          </div>
+
+          <div class="code-input-area">
+            <div class="code-input-section">
+              <h3>What code do you need?</h3>
+              <input 
+                type="text" 
+                id="codeTopicFullscreen" 
+                placeholder="e.g., React counter, Python todo, Flask API, JavaScript form..."
+                onkeypress="if(event.key==='Enter') generateCode();"
+              />
+              <button class="btn-gen-code" onclick="generateCode();">Generate Code</button>
+            </div>
+
+            <div class="code-input-section">
+              <h3>Your Generated Code</h3>
+              <div id="generatedCodeFullscreen" class="code-output-area">Enter a topic and click Generate...</div>
+              <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-copy-gen" onclick="copyGeneratedCode();" style="flex: 1;">📋 Copy Code</button>
+                <button class="btn-gen-code" onclick="loadCodeToEditor();" style="flex: 1; background: linear-gradient(135deg, #42b983, #52d9a1); color: white;">✓ Load to Editor</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CODE EDITOR VIEW (AFTER LOADING CODE) -->
+    <div id="editorView" class="editor-view-container" style="display: none;">
+      <div class="editor-view-header">
+        <h2>📝 Your Generated Code</h2>
+        <button class="btn-close-editor" onclick="closeEditorView();">×</button>
+      </div>
+      <div id="codeEditorDisplay" class="code-editor-display"></div>
+      <div class="editor-view-buttons">
+        <button class="btn-copy-editor" onclick="copyEditorCode();">📋 Copy Code</button>
+        <button class="btn-download" onclick="downloadCode();">⬇️ Download</button>
+        <button class="btn-new-gen" onclick="backToGenerator();">⚡ Generate New</button>
+      </div>
+    </div>
+
+    <!-- MAIN CENTERED GENERATOR BUTTON -->
+    <div class="code-generator-main">
+      <div class="generator-container">
+        <div class="generator-icon">⚡</div>
+        <h1 class="generator-title">Code Generator</h1>
+        <p class="generator-subtitle">Generate professional code for any project<br>Python, JavaScript, React, Flask and more...</p>
+        <button class="btn-generate-large" onclick="document.getElementById('codeGeneratorFullscreen').style.display='flex'; document.getElementById('codeTopicFullscreen').focus();">Start Generating Code</button>
+      </div>
+    </div>
+
+    <script>
+      // ===== CONFIGURATION & INITIALIZATION =====
+      console.log('====== CODE SYNC EDITOR LOADED ======');
+      
+      // Display user info
+      document.getElementById('userEmail').textContent = localStorage.getItem('userEmail') || 'Guest User';
+      console.log('✓ User session loaded');
+      
+      // Ready notification
+      setTimeout(() => {
+        console.log('✓ Code generator fully initialized');
+      }, 500);
+
+      // CODE GENERATOR FUNCTIONS
+      function openCodeGenerator() {
+        document.getElementById('codeGeneratorModal').style.display = 'flex';
+        document.getElementById('codeTopicInput').focus();
+      }
+
+      function closeCodeGenerator() {
+        document.getElementById('codeGeneratorModal').style.display = 'none';
+        document.getElementById('codeTopicInput').value = '';
+        document.getElementById('generatedCodePreview').textContent = 'Enter a topic and click Generate...';
+      }
+
+      function generateCodeNow() {
+        const topic = document.getElementById('codeTopicInput').value.trim();
+        if (!topic) {
+          alert('Please enter a code topic');
+          return;
+        }
+
+        const code = getCodeTemplate(topic);
+        document.getElementById('generatedCodePreview').textContent = code;
+      }
+
+      function getCodeTemplate(topic) {
+        const lowerTopic = topic.toLowerCase().trim();
+        let code = '';
+
+        // ===== COMPREHENSIVE CODE TEMPLATE LIBRARY =====
+        const templates = {
+          // REACT / FRONTEND
+          'react': { keywords: ['react', 'counter', 'component', 'hooks'], code: 'import React, { useState } from "react";\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n  return (\n    <div style={{ padding: "20px", textAlign: "center" }}>\n      <h1>React Counter</h1>\n      <p style={{ fontSize: "48px" }}>{count}</p>\n      <button onClick={() => setCount(count + 1)}>+</button>\n      <button onClick={() => setCount(count - 1)}>-</button>\n      <button onClick={() => setCount(0)}>Reset</button>\n    </div>\n  );\n}\n' },
+          
+          // PYTHON / FLASK
+          'flask': { keywords: ['flask', 'python', 'api', 'server', 'web'], code: 'from flask import Flask, jsonify, request\napp = Flask(__name__)\n\n@app.route("/")\ndef home():\n    return jsonify({"message": "Welcome to Flask API", "status": "running"})\n\n@app.route("/api/data", methods=["GET"])\ndef get_data():\n    return jsonify({"data": [1, 2, 3, 4, 5]})\n\n@app.route("/api/data", methods=["POST"])\ndef post_data():\n    data = request.get_json()\n    return jsonify({"received": data}), 201\n\nif __name__ == "__main__":\n    app.run(debug=True, host="0.0.0.0", port=5000)\n' },
+          
+          // NODE.js / EXPRESS
+          'express': { keywords: ['express', 'node', 'nodejs', 'server', 'rest'], code: 'const express = require("express");\nconst cors = require("cors");\nconst app = express();\n\napp.use(cors());\napp.use(express.json());\n\napp.get("/", (req, res) => {\n  res.json({ message: "Express server running", status: "OK" });\n});\n\napp.get("/api/items", (req, res) => {\n  res.json([\n    { id: 1, name: "Item 1" },\n    { id: 2, name: "Item 2" }\n  ]);\n});\n\napp.post("/api/items", (req, res) => {\n  const newItem = req.body;\n  res.status(201).json(newItem);\n});\n\napp.listen(3000, () => console.log("Server on port 3000"));\n' },
+          
+          // JAVASCRIPT / TODO
+          'todo': { keywords: ['todo', 'task', 'list', 'javascript'], code: 'class TodoList {\n  constructor() {\n    this.todos = [];\n    this.id = 0;\n  }\n  \n  add(text, priority = "normal") {\n    this.todos.push({ id: ++this.id, text, completed: false, priority });\n    return `Added: ${text}`;\n  }\n  \n  remove(id) {\n    this.todos = this.todos.filter(t => t.id !== id);\n    return "Removed";\n  }\n  \n  toggle(id) {\n    const todo = this.todos.find(t => t.id === id);\n    if (todo) todo.completed = !todo.completed;\n  }\n  \n  getAll() {\n    return this.todos;\n  }\n}\n\nconst list = new TodoList();\nlist.add("Learn JavaScript");\nlist.add("Build projects");\nconsole.log(list.getAll());\n' },
+          
+          // PYTHON / TODO
+          'python todo': { keywords: ['python', 'todo', 'task', 'application'], code: 'class TodoApp:\n    def __init__(self):\n        self.todos = []\n        self.id = 0\n    \n    def add(self, task, priority="normal"):\n        self.id += 1\n        self.todos.append({"id": self.id, "task": task, "done": False, "priority": priority})\n        return f"Added: {task}"\n    \n    def mark_done(self, tid):\n        for todo in self.todos:\n            if todo["id"] == tid:\n                todo["done"] = True\n                return "Marked as done"\n        return "Not found"\n    \n    def remove(self, tid):\n        self.todos = [t for t in self.todos if t["id"] != tid]\n        return "Removed"\n    \n    def show_all(self):\n        return self.todos\n\nif __name__ == "__main__":\n    app = TodoApp()\n    app.add("Learn Python")\n    app.add("Build projects", "high")\n    print(app.show_all())\n' },
+          
+          // HTML / FORM
+          'html form': { keywords: ['html', 'form', 'contact', 'input'], code: '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Contact Form</title>\n  <style>\n    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }\n    .form-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }\n    h1 { text-align: center; color: #333; }\n    .form-group { margin-bottom: 20px; }\n    label { display: block; margin-bottom: 8px; color: #555; font-weight: bold; }\n    input, textarea, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; }\n    input:focus, textarea:focus { outline: none; border-color: #0066cc; }\n    button { width: 100%; padding: 12px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }\n    button:hover { background: #0052a3; }\n  </style>\n</head>\n<body>\n  <div class="form-container">\n    <h1>Contact Us</h1>\n    <form>\n      <div class="form-group">\n        <label for="name">Full Name</label>\n        <input type="text" id="name" name="name" required>\n      </div>\n      <div class="form-group">\n        <label for="email">Email</label>\n        <input type="email" id="email" name="email" required>\n      </div>\n      <div class="form-group">\n        <label for="message">Message</label>\n        <textarea id="message" name="message" rows="5" required></textarea>\n      </div>\n      <button type="submit">Send</button>\n    </form>\n  </div>\n</body>\n</html>\n' },
+          
+          // VUE.js
+          'vue': { keywords: ['vue', 'vuejs', 'component'], code: '<template>\n  <div class="app">\n    <h1>{{ title }}</h1>\n    <p>Count: <strong>{{ count }}</strong></p>\n    <button @click="increment">+</button>\n    <button @click="decrement">-</button>\n    <button @click="reset">Reset</button>\n  </div>\n</template>\n\n<script>\nexport default {\n  data() {\n    return {\n      count: 0,\n      title: "Vue Counter",\n    };\n  },\n  methods: {\n    increment() { this.count++; },\n    decrement() { this.count--; },\n    reset() { this.count = 0; },\n  }\n};\n<\\/script>\n\n<style scoped>\n.app { text-align: center; padding: 40px; }\nbutton { padding: 10px 20px; margin: 5px; background: #42b983; color: white; border: none; border-radius: 5px; cursor: pointer; }\n</style>\n' },
+          
+          // CALCULATOR
+          'calculator': { keywords: ['calculator', 'calculator app', 'math'], code: 'function Calculator() {\n  this.result = 0;\n  \n  this.add = (a, b) => { this.result = a + b; return this.result; };\n  this.subtract = (a, b) => { this.result = a - b; return this.result; };\n  this.multiply = (a, b) => { this.result = a * b; return this.result; };\n  this.divide = (a, b) => {\n    if (b === 0) return "Error: Division by zero";\n    this.result = a / b;\n    return this.result;\n  };\n  this.power = (a, b) => { this.result = Math.pow(a, b); return this.result; };\n  this.sqrt = (a) => { this.result = Math.sqrt(a); return this.result; };\n}\n\nconst calc = new Calculator();\nconsole.log("10 + 5 =", calc.add(10, 5));\nconsole.log("10 - 5 =", calc.subtract(10, 5));\nconsole.log("10 * 5 =", calc.multiply(10, 5));\nconsole.log("10 / 5 =", calc.divide(10, 5));\nconsole.log("2 ^ 8 =", calc.power(2, 8));\n' },
+          
+          // MONGODB
+          'mongodb': { keywords: ['mongodb', 'mongoose', 'database', 'nosql'], code: 'const mongoose = require("mongoose");\nconst express = require("express");\n\n// Connect to MongoDB\nmongoose.connect("mongodb://localhost:27017/myapp", {\n  useNewUrlParser: true,\n  useUnifiedTopology: true\n});\n\n// Define schema\nconst userSchema = new mongoose.Schema({\n  name: String,\n  email: { type: String, unique: true },\n  age: Number,\n  createdAt: { type: Date, default: Date.now }\n});\n\nconst User = mongoose.model("User", userSchema);\n\nconst app = express();\napp.use(express.json());\n\napp.get("/users", async (req, res) => {\n  const users = await User.find();\n  res.json(users);\n});\n\napp.post("/users", async (req, res) => {\n  const user = await User.create(req.body);\n  res.status(201).json(user);\n});\n\napp.listen(3000);\n' },
+          
+          // TENSORFLOW
+          'tensorflow': { keywords: ['tensorflow', 'keras', 'neural', 'ai', 'ml', 'machine learning'], code: 'import tensorflow as tf\nfrom tensorflow import keras\nimport numpy as np\n\n# Load dataset\n(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()\nx_train, x_test = x_train / 255.0, x_test / 255.0\n\n# Build model\nmodel = keras.Sequential([\n    keras.layers.Flatten(input_shape=(28, 28)),\n    keras.layers.Dense(128, activation="relu"),\n    keras.layers.Dropout(0.2),\n    keras.layers.Dense(10, activation="softmax")\n])\n\n# Compile\nmodel.compile(\n    optimizer="adam",\n    loss="sparse_categorical_crossentropy",\n    metrics=["accuracy"]\n)\n\n# Train\nmodel.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test))\n\n# Evaluate\ntest_loss, test_acc = model.evaluate(x_test, y_test)\nprint(f"Test accuracy: {test_acc * 100:.2f}%")\n' },
+          
+          // PYTORCH
+          'pytorch': { keywords: ['pytorch', 'torch', 'ai', 'ml', 'deep learning'], code: 'import torch\nimport torch.nn as nn\nfrom torch.optim import Adam\nfrom torch.utils.data import DataLoader\n\nclass NeuralNetwork(nn.Module):\n    def __init__(self):\n        super(NeuralNetwork, self).__init__()\n        self.fc1 = nn.Linear(784, 128)\n        self.fc2 = nn.Linear(128, 64)\n        self.fc3 = nn.Linear(64, 10)\n        self.relu = nn.ReLU()\n    \n    def forward(self, x):\n        x = x.view(-1, 784)\n        x = self.relu(self.fc1(x))\n        x = self.relu(self.fc2(x))\n        return self.fc3(x)\n\nmodel = NeuralNetwork()\ncriterion = nn.CrossEntropyLoss()\noptimizer = Adam(model.parameters(), lr=0.001)\n\nprint("PyTorch model initialized")\nprint(f"Parameters: {sum(p.numel() for p in model.parameters())} total")\n' },
+          
+          // OPENAI
+          'openai': { keywords: ['openai', 'chatgpt', 'ai', 'gpt', 'chat'], code: 'import openai\n\n# Set API key\nopenai.api_key = "sk-your-api-key-here"\n\ndef chat_with_gpt(prompt, model="gpt-3.5-turbo", max_tokens=150):\n    """Send prompt to ChatGPT and get response"""\n    try:\n        response = openai.ChatCompletion.create(\n            model=model,\n            messages=[{"role": "user", "content": prompt}],\n            max_tokens=max_tokens,\n            temperature=0.7\n        )\n        return response.choices[0].message["content"]\n    except Exception as e:\n        return f"Error: {str(e)}"\n\nif __name__ == "__main__":\n    result = chat_with_gpt("Explain Python in simple terms")\n    print(result)\n' },
+          
+          // NLP
+          'nlp': { keywords: ['nlp', 'sentiment', 'text analysis', 'natural language'], code: 'from textblob import TextBlob\nfrom nltk.tokenize import sent_tokenize, word_tokenize\nimport nltk\n\nclass NLPAnalyzer:\n    @staticmethod\n    def sentiment_analysis(text):\n        blob = TextBlob(text)\n        polarity = blob.sentiment.polarity\n        \n        if polarity > 0.1:\n            sentiment = "Positive"\n        elif polarity < -0.1:\n            sentiment = "Negative"\n        else:\n            sentiment = "Neutral"\n        \n        return {\n            "text": text,\n            "sentiment": sentiment,\n            "polarity": polarity,\n            "subjectivity": blob.sentiment.subjectivity\n        }\n    \n    @staticmethod\n    def tokenize(text):\n        return word_tokenize(text)\n\nif __name__ == "__main__":\n    texts = [\n        "I love this product!",\n        "This is terrible",\n        "The weather is nice"\n    ]\n    for text in texts:\n        print(NLPAnalyzer.sentiment_analysis(text))\n' },
+          
+          // COMPUTER VISION
+          'opencv': { keywords: ['opencv', 'computer vision', 'image', 'cv'], code: 'import cv2\nimport numpy as np\n\nclass ImageProcessor:\n    @staticmethod\n    def load_image(path):\n        return cv2.imread(path)\n    \n    @staticmethod\n    def detect_faces(image_path):\n        cascade = cv2.CascadeClassifier(\n            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"\n        )\n        img = cv2.imread(image_path)\n        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)\n        faces = cascade.detectMultiScale(gray, 1.3, 5)\n        return faces\n    \n    @staticmethod\n    def apply_blur(image, kernel_size=5):\n        return cv2.blur(image, (kernel_size, kernel_size))\n    \n    @staticmethod\n    def edge_detection(image):\n        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)\n        return cv2.Canny(gray, 100, 200)\n\nprint("OpenCV image processor ready")\n' },
+          
+          // WEB SCRAPING
+          'scraper': { keywords: ['scraper', 'web scraping', 'beautifulsoup', 'scrape'], code: 'from bs4 import BeautifulSoup\nimport requests\nfrom urllib.parse import urljoin\n\nclass WebScraper:\n    @staticmethod\n    def fetch(url, timeout=5):\n        try:\n            response = requests.get(url, timeout=timeout)\n            return response.text\n        except Exception as e:\n            return f"Error fetching: {str(e)}"\n    \n    @staticmethod\n    def parse(html_content):\n        return BeautifulSoup(html_content, "html.parser")\n    \n    @staticmethod\n    def extract_links(html_content):\n        soup = BeautifulSoup(html_content, "html.parser")\n        return [a.get("href") for a in soup.find_all("a") if a.get("href")]\n    \n    @staticmethod\n    def extract_tables(html_content):\n        soup = BeautifulSoup(html_content, "html.parser")\n        tables = soup.find_all("table")\n        return len(tables)\n\nif __name__ == "__main__":\n    scraper = WebScraper()\n    html = scraper.fetch("https://example.com")\n    soup = scraper.parse(html)\n    links = scraper.extract_links(html)\n    print(f"Found {len(links)} links")\n' },
+          
+          // SELENIUM
+          'selenium': { keywords: ['selenium', 'automation', 'browser', 'test'], code: 'from selenium import webdriver\nfrom selenium.webdriver.common.by import By\nfrom selenium.webdriver.support.ui import WebDriverWait\nfrom selenium.webdriver.support import expected_conditions as EC\n\nclass BrowserAutomation:\n    def __init__(self):\n        self.driver = None\n    \n    def start_chrome(self):\n        options = webdriver.ChromeOptions()\n        options.add_argument("--start-maximized")\n        self.driver = webdriver.Chrome(options=options)\n    \n    def navigate(self, url):\n        self.driver.get(url)\n    \n    def find_and_click(self, by, value):\n        element = WebDriverWait(self.driver, 10).until(\n            EC.presence_of_element_located((by, value))\n        )\n        element.click()\n    \n    def close(self):\n        if self.driver:\n            self.driver.quit()\n\nif __name__ == "__main__":\n    automation = BrowserAutomation()\n    print("Selenium automation ready")\n' },
+          
+          // REST API
+          'rest api': { keywords: ['rest', 'api', 'rest api', 'endpoint'], code: 'const express = require("express");\nconst app = express();\n\napp.use(express.json());\n\nlet items = [\n  { id: 1, name: "Item 1", description: "First item" },\n  { id: 2, name: "Item 2", description: "Second item" }\n];\n\n// GET all items\napp.get("/api/items", (req, res) => {\n  res.json(items);\n});\n\n// GET item by id\napp.get("/api/items/:id", (req, res) => {\n  const item = items.find(i => i.id === parseInt(req.params.id));\n  if (!item) return res.status(404).json({ error: "Not found" });\n  res.json(item);\n});\n\n// POST new item\napp.post("/api/items", (req, res) => {\n  const item = { id: items.length + 1, ...req.body };\n  items.push(item);\n  res.status(201).json(item);\n});\n\n// PUT update item\napp.put("/api/items/:id", (req, res) => {\n  const item = items.find(i => i.id === parseInt(req.params.id));\n  if (item) Object.assign(item, req.body);\n  res.json(item);\n});\n\n// DELETE item\napp.delete("/api/items/:id", (req, res) => {\n  items = items.filter(i => i.id !== parseInt(req.params.id));\n  res.json({ message: "Deleted" });\n});\n\napp.listen(3000);\n' },
+          
+          // DATABASE
+          'sql': { keywords: ['sql', 'database', 'query', 'sqlite'], code: 'import sqlite3\n\nclass Database:\n    def __init__(self, db_name="app.db"):\n        self.conn = sqlite3.connect(db_name)\n        self.cursor = self.conn.cursor()\n    \n    def create_table(self):\n        self.cursor.execute(\'\'\'\n            CREATE TABLE IF NOT EXISTS users (\n                id INTEGER PRIMARY KEY,\n                name TEXT NOT NULL,\n                email TEXT UNIQUE NOT NULL,\n                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n            )\n        \'\'\')\n        self.conn.commit()\n    \n    def insert(self, name, email):\n        self.cursor.execute("INSERT INTO users (name, email) VALUES (?, ?)", (name, email))\n        self.conn.commit()\n    \n    def select_all(self):\n        self.cursor.execute("SELECT * FROM users")\n        return self.cursor.fetchall()\n    \n    def close(self):\n        self.conn.close()\n\nif __name__ == "__main__":\n    db = Database()\n    db.create_table()\n    db.insert("John Doe", "john@example.com")\n    print(db.select_all())\n' },
+          
+          // AUTH
+          'authentication': { keywords: ['auth', 'login', 'jwt', 'authentication', 'password'], code: 'from flask import Flask, request, jsonify\nfrom werkzeug.security import generate_password_hash, check_password_hash\nimport jwt\nfrom datetime import datetime, timedelta\n\napp = Flask(__name__)\napp.config["SECRET_KEY"] = "your-secret-key"\n\nusers_db = {}\n\n@app.route("/register", methods=["POST"])\ndef register():\n    data = request.get_json()\n    username = data.get("username")\n    password = data.get("password")\n    \n    if username in users_db:\n        return jsonify({"error": "User exists"}), 400\n    \n    users_db[username] = generate_password_hash(password)\n    return jsonify({"message": "User registered"}), 201\n\n@app.route("/login", methods=["POST"])\ndef login():\n    data = request.get_json()\n    username = data.get("username")\n    password = data.get("password")\n    \n    if username not in users_db:\n        return jsonify({"error": "Invalid credentials"}), 401\n    \n    if not check_password_hash(users_db[username], password):\n        return jsonify({"error": "Invalid credentials"}), 401\n    \n    token = jwt.encode({"username": username, "exp": datetime.utcnow() + timedelta(hours=1)}, app.config["SECRET_KEY"])\n    return jsonify({"token": token})\n\nif __name__ == "__main__":\n    app.run(debug=True)\n' },
+          
+          // WEBSOCKET
+          'websocket': { keywords: ['websocket', 'realtime', 'socket', 'live'], code: 'from flask import Flask, render_template_string\nfrom flask_socketio import SocketIO, emit, join_room\nimport json\n\napp = Flask(__name__)\napp.config["SECRET_KEY"] = "secret!"\nsocketio = SocketIO(app, cors_allowed_origins="*")\n\nconnected_users = {}\n\n@socketio.on("connect")\ndef handle_connect():\n    print(f"Client {request.sid} connected")\n    emit("response", {"message": "Connected"})\n\n@socketio.on("message")\ndef handle_message(data):\n    print(f"Message: {data}")\n    emit("response", {"message": f"Received: {data}"}, broadcast=True)\n\n@socketio.on("disconnect")\ndef handle_disconnect():\n    print(f"Client disconnected")\n\nif __name__ == "__main__":\n    socketio.run(app, debug=True, host="0.0.0.0", port=5000)\n' },
+
+          // ADDITIONAL LANGUAGES / MODULES
+          'fastapi': { keywords: ['fastapi', 'python api', 'async api'], code: 'from fastapi import FastAPI\nfrom pydantic import BaseModel\n\napp = FastAPI(title="Task API")\n\nclass Task(BaseModel):\n    title: str\n    done: bool = False\n\ntasks = []\n\n@app.get("/health")\ndef health():\n    return {"status": "ok"}\n\n@app.get("/tasks")\ndef list_tasks():\n    return tasks\n\n@app.post("/tasks")\ndef create_task(task: Task):\n    tasks.append(task.dict())\n    return {"message": "created", "task": task}\n' },
+
+          'nextjs': { keywords: ['nextjs', 'next', 'react ssr'], code: 'export default function Home() {\n  return (\n    <main style={{ padding: 24, fontFamily: "sans-serif" }}>\n      <h1>Next.js Starter</h1>\n      <p>Build full-stack React apps fast.</p>\n    </main>\n  );\n}\n' },
+
+          'go': { keywords: ['go', 'golang', 'go api', 'gin'], code: 'package main\n\nimport (\n  "net/http"\n  "github.com/gin-gonic/gin"\n)\n\nfunc main() {\n  r := gin.Default()\n  r.GET("/health", func(c *gin.Context) {\n    c.JSON(http.StatusOK, gin.H{"status": "ok"})\n  })\n  r.Run(":8080")\n}\n' },
+
+          'rust': { keywords: ['rust', 'rust cli', 'cargo'], code: 'use std::io;\n\nfn main() {\n    println!("Rust starter");\n    let mut name = String::new();\n    io::stdin().read_line(&mut name).expect("failed to read");\n    println!("Hello, {}", name.trim());\n}\n' },
+
+          'csharp': { keywords: ['c#', 'csharp', '.net', 'asp.net'], code: 'using Microsoft.AspNetCore.Builder;\n\nvar app = WebApplication.CreateBuilder(args).Build();\napp.MapGet("/health", () => Results.Ok(new { status = "ok" }));\napp.Run();\n' },
+
+          'docker': { keywords: ['docker', 'dockerfile', 'container'], code: 'FROM node:20-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nEXPOSE 3000\nCMD ["npm", "start"]\n' },
+
+          'kubernetes': { keywords: ['k8s', 'kubernetes', 'deployment', 'service'], code: 'apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: app-deployment\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: my-app\n  template:\n    metadata:\n      labels:\n        app: my-app\n    spec:\n      containers:\n      - name: my-app\n        image: my-app:latest\n        ports:\n        - containerPort: 3000\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: app-service\nspec:\n  selector:\n    app: my-app\n  ports:\n  - port: 80\n    targetPort: 3000\n' },
+        };
+
+        // ===== SMART SEARCH LOGIC =====
+        
+        // Try exact match first
+        for (let key in templates) {
+          if (key.toLowerCase() === lowerTopic) {
+            return templates[key].code;
+          }
+        }
+        
+        // Try keyword matching
+        for (let key in templates) {
+          const templateKeywords = templates[key].keywords;
+          for (let keyword of templateKeywords) {
+            if (lowerTopic === keyword.toLowerCase()) {
+              return templates[key].code;
+            }
+          }
+        }
+        
+        // Try partial word matching
+        for (let key in templates) {
+          const templateKeywords = templates[key].keywords;
+          for (let keyword of templateKeywords) {
+            if (keyword.includes(lowerTopic) || lowerTopic.includes(keyword)) {
+              return templates[key].code;
+            }
+          }
+        }
+        
+        // Try fuzzy matching - check if words match
+        const searchWords = lowerTopic.split(/\s+/);
+        for (let key in templates) {
+          const templateKeywords = templates[key].keywords;
+          let matches = 0;
+          for (let searchWord of searchWords) {
+            for (let keyword of templateKeywords) {
+              if (keyword.includes(searchWord) || searchWord.includes(keyword)) {
+                matches++;
+              }
+            }
+          }
+          if (matches > 0) {
+            return templates[key].code;
+          }
+        }
+        
+        // Try matching against all text content
+        for (let letter of lowerTopic.split("")) {
+          for (let key in templates) {
+            if (key.includes(letter)) {
+              return templates[key].code;
+            }
+          }
+        }
+        
+        // Default: Generate Python template
+        let defaultCode = '# ' + topic + ' Application\n\n';
+        defaultCode += 'def main():\n';
+        defaultCode += '    """Main entry point for ' + topic + ' application"""\n';
+        defaultCode += '    print(f"Running ' + topic + ' application...")\n';
+        defaultCode += '    print("=" * 40)\n';
+        defaultCode += '    execute()\n\n';
+        defaultCode += 'def execute():\n';
+        defaultCode += '    """Execute main logic"""\n';
+        defaultCode += '    for i in range(5):\n';
+        defaultCode += '        print(f"Processing step {i + 1}...")\n';
+        defaultCode += '    print("=" * 40)\n';
+        defaultCode += '    print("Complete!")\n\n';
+        defaultCode += 'if __name__ == "__main__":\n';
+        defaultCode += '    main()\n';
+
+        return defaultCode;
+      }
+
+      function copyGeneratedCode() {
+        const code = document.getElementById('generatedCodeFullscreen').textContent;
+        if (code.indexOf('Enter a topic') !== -1) {
+          alert('Please generate code first!');
+          return;
+        }
+        navigator.clipboard.writeText(code).then(function() {
+          alert('✓ Code copied to clipboard!');
+        }).catch(function(err) {
+          console.error('Failed to copy:', err);
+          alert('Failed to copy code');
+        });
+      }
+
+      // Simple Code Generator
+      function generateCode() {
+        try {
+          const topic = document.getElementById('codeTopicFullscreen').value.trim();
+          if (!topic) {
+            alert('Please enter what code you need!');
+            return;
+          }
+
+          console.log('Generating code for topic:', topic);
+          const code = getCodeTemplate(topic);
+          console.log('Generated code length:', code.length);
+          document.getElementById('generatedCodeFullscreen').textContent = code;
+          console.log('✓ Code generated successfully');
+        } catch (error) {
+          console.error('Error in generateCode:', error);
+          alert('Error generating code: ' + error.message);
+        }
+      }
+
+      // Make code generator functions global
+      window.generateCode = generateCode;
+      window.getCodeTemplate = getCodeTemplate;
+      window.copyGeneratedCode = copyGeneratedCode;
+      window.loadCodeToEditor = loadCodeToEditor;
+      window.closeEditorView = closeEditorView;
+      window.copyEditorCode = copyEditorCode;
+      window.downloadCode = downloadCode;
+      window.backToGenerator = backToGenerator;
+
+      // Logout function
+      function logout() {
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('adminId');
+        localStorage.removeItem('timestamp');
+        window.location.href = '/';
+      }
+
+      // Expose logout to global scope for onclick handlers
+      window.logout = logout;
+
+      // ===== CODE EDITOR VIEW FUNCTIONS =====
+
+      function loadCodeToEditor() {
+        const code = document.getElementById('generatedCodeFullscreen').textContent;
+        if (code.indexOf('Enter a topic') !== -1) {
+          alert('Please generate code first!');
+          return;
+        }
+        
+        // Display the editor view with the generated code
+        document.getElementById('codeGeneratorFullscreen').style.display = 'none';
+        document.getElementById('editorView').style.display = 'flex';
+        document.getElementById('codeEditorDisplay').textContent = code;
+        
+        // Show success message
+        alert('✓ Code loaded to editor!');
+      }
+
+      function closeEditorView() {
+        document.getElementById('editorView').style.display = 'none';
+        document.getElementById('codeGeneratorFullscreen').style.display = 'flex';
+      }
+
+      function copyEditorCode() {
+        const code = document.getElementById('codeEditorDisplay').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+          alert('✓ Code copied to clipboard!');
+        });
+      }
+
+      function downloadCode() {
+        const code = document.getElementById('codeEditorDisplay').textContent;
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(code));
+        
+        // Detect language from code
+        let filename = 'generated_code';
+        if (code.includes('import React') || code.includes('export default')) {
+          filename = 'App.jsx';
+        } else if (code.includes('from fastapi import FastAPI')) {
+          filename = 'main.py';
+        } else if (code.includes('package main') && code.includes('gin.Default')) {
+          filename = 'main.go';
+        } else if (code.includes('use std::io;')) {
+          filename = 'main.rs';
+        } else if (code.includes('Microsoft.AspNetCore.Builder')) {
+          filename = 'Program.cs';
+        } else if (code.includes('apiVersion: apps/v1')) {
+          filename = 'k8s.yaml';
+        } else if (code.includes('FROM node:20-alpine')) {
+          filename = 'Dockerfile';
+        } else if (code.includes('from flask') || code.includes('def ')) {
+          filename = 'app.py';
+        } else if (code.includes('const express')) {
+          filename = 'server.js';
+        } else if (code.includes('class ') && code.includes('public ')) {
+          filename = 'App.java';
+        } else if (code.includes('console.log') || code.includes('const ')) {
+          filename = 'script.js';
+        }
+        
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        alert(`✓ Code downloaded as ${filename}`);
+      }
+
+      function backToGenerator() {
+        document.getElementById('editorView').style.display = 'none';
+        document.getElementById('codeGeneratorFullscreen').style.display = 'flex';
+        document.getElementById('codeTopicFullscreen').value = '';
+        document.getElementById('generatedCodeFullscreen').textContent = 'Enter a topic and click Generate...';
+        document.getElementById('codeTopicFullscreen').focus();
+      }
+
+      // Expose all editor view functions globally
+      window.loadCodeToEditor = loadCodeToEditor;
+      window.closeEditorView = closeEditorView;
+      window.copyEditorCode = copyEditorCode;
+      window.downloadCode = downloadCode;
+      window.backToGenerator = backToGenerator;
+      window.copyGeneratedCode = copyGeneratedCode;
+
+      // Update connection status
+      function updateConnectionStatus(status) {
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('connectionStatus');
+        
+        if (status === 'connected') {
+          statusDot.classList.remove('disconnected');
+          statusText.textContent = 'Connected';
+        } else {
+          statusDot.classList.add('disconnected');
+          statusText.textContent = 'Disconnected';
+        }
+      }
+
+      // Monitor connection
+      window.addEventListener('focus', () => {
+        updateConnectionStatus('connected');
+      });
+
+      window.addEventListener('blur', () => {
+        updateConnectionStatus('disconnected');
+      });
+
+      // WebSocket Connection for Real-time Collaboration
+      let WEBSOCKET_URL = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8089`;
+      let ws = null;
+      let isConnected = false;
+
+      async function resolveWebSocketUrl() {
+        try {
+          const response = await fetch('/health');
+          if (!response.ok) return;
+          const health = await response.json();
+          if (health && health.websocket_port) {
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            WEBSOCKET_URL = `${protocol}://${window.location.hostname}:${health.websocket_port}`;
+          }
+        } catch (error) {
+          console.warn('Using default WebSocket URL:', WEBSOCKET_URL, error);
+        }
+      }
+
+      function initializeWebSocket() {
+        console.log('🔗 Initializing WebSocket connection to:', WEBSOCKET_URL);
+        
+        try {
+          ws = new WebSocket(WEBSOCKET_URL);
+
+          ws.onopen = () => {
+            isConnected = true;
+            console.log('✓ WebSocket connected');
+            updateConnectionStatus('connected');
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              console.log('📨 Message received:', data.type);
+
+              if (data.type === 'connection') {
+                console.log('✓ Server connected:', data.message);
+              } else if (data.type === 'full-document') {
+                console.log('📄 Received full document from server');
+                // Optionally load initial document
+              } else if (data.type === 'patch') {
+                console.log('📝 Received patch from server');
+                // Handle real-time patches from other users
+              }
+            } catch (error) {
+              console.error('Failed to parse message:', error);
+            }
+          };
+
+          ws.onclose = () => {
+            isConnected = false;
+            console.log('❌ WebSocket disconnected');
+            updateConnectionStatus('disconnected');
+            // Attempt reconnection after 3 seconds
+            setTimeout(initializeWebSocket, 3000);
+          };
+
+          ws.onerror = (error) => {
+            console.error('⚠️ WebSocket error:', error);
+            updateConnectionStatus('error');
+          };
+        } catch (error) {
+          console.error('Failed to initialize WebSocket:', error);
+        }
+      }
+
+      async function bootCollaboration() {
+        console.log('🚀 Resolving collaboration config...');
+        await resolveWebSocketUrl();
+        initializeWebSocket();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootCollaboration);
+      } else {
+        bootCollaboration();
+      }
+    </script>
+  </body>
+</html>

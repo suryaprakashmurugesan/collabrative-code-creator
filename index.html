@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time Collaborative Code Editor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #64c8ff;
+        --secondary: #d464ff;
+        --dark: #0f0c29;
+        --darker: #1a1a2e;
+        --light: #ffffff;
+        --accent: #24243e;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: linear-gradient(-45deg, var(--dark), #302b63, var(--accent), var(--darker));
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-50px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(50px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+
+      @keyframes glow {
+        0%, 100% { text-shadow: 0 0 10px rgba(100, 200, 255, 0.5); }
+        50% { text-shadow: 0 0 20px rgba(100, 200, 255, 0.8), 0 0 30px rgba(100, 200, 255, 0.3); }
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+      }
+
+      #root {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        position: relative;
+      }
+
+      /* HOME PAGE */
+      .home-page {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .home-content {
+        max-width: 600px;
+      }
+
+      .logo {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 30px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.3);
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .home-page h1 {
+        font-size: 3.5rem;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: glow 3s ease-in-out infinite;
+      }
+
+      .home-page p {
+        font-size: 1.2rem;
+        color: #b0d4ff;
+        margin-bottom: 40px;
+        line-height: 1.6;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 15px 40px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #4db8ff);
+        color: var(--dark);
+        border: 2px solid var(--primary);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #e680ff);
+        color: var(--light);
+        border: 2px solid var(--secondary);
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(212, 100, 255, 0.4);
+      }
+
+      /* LOGIN PAGE */
+      .login-page {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .login-container {
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 20px;
+        padding: 50px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.2);
+        animation: slideInLeft 0.6s ease-out;
+      }
+
+      .admin-container {
+        animation: slideInRight 0.6s ease-out;
+      }
+
+      .login-container h2 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .login-container .subtitle {
+        font-size: 0.9rem;
+        color: #b0d4ff;
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 14px;
+        margin-top: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-login-user {
+        background: linear-gradient(135deg, var(--primary), #4db8ff);
+        color: var(--dark);
+      }
+
+      .btn-login-admin {
+        background: linear-gradient(135deg, var(--secondary), #e680ff);
+        color: var(--light);
+      }
+
+      .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-back {
+        background: rgba(100, 200, 255, 0.1);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        margin-top: 20px;
+      }
+
+      .btn-back:hover {
+        background: rgba(100, 200, 255, 0.2);
+      }
+
+      .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+      }
+
+      .remember-forgot a {
+        color: var(--primary);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .remember-forgot a:hover {
+        color: #80d9ff;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .checkbox-group input {
+        width: auto;
+        cursor: pointer;
+      }
+
+      .split-container {
+        display: flex;
+        gap: 0;
+        width: 100%;
+        max-width: 1000px;
+      }
+
+      .split-container .login-container {
+        flex: 1;
+        max-width: none;
+        margin: 20px;
+      }
+
+      .split-container .admin-container {
+        flex: 1;
+        max-width: none;
+        margin: 20px;
+      }
+
+      .back-button {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        background: rgba(100, 200, 255, 0.2);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        z-index: 100;
+      }
+
+      .back-button:hover {
+        background: rgba(100, 200, 255, 0.3);
+        transform: translateX(-5px);
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 60px;
+        max-width: 1000px;
+      }
+
+      .feature-card {
+        background: rgba(42, 45, 56, 0.5);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .feature-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 20px rgba(100, 200, 255, 0.2);
+        transform: translateY(-5px);
+      }
+
+      .feature-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+      }
+
+      .feature-card h3 {
+        color: var(--primary);
+        margin-bottom: 10px;
+      }
+
+      .feature-card p {
+        font-size: 0.9rem;
+        color: #b0d4ff;
+      }
+
+      @media (max-width: 768px) {
+        .home-page h1 {
+          font-size: 2rem;
+        }
+
+        .split-container {
+          flex-direction: column;
+        }
+
+        .login-container {
+          padding: 30px;
+        }
+
+        .button-group {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+        }
+
+        .features {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .error {
+        background: rgba(255, 50, 50, 0.2);
+        border: 1px solid #ff3232;
+        color: #ff6b6b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .error.show {
+        display: block;
+      }
+
+      .success {
+        background: rgba(50, 200, 100, 0.2);
+        border: 1px solid #32c864;
+        color: #6bff8b;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .success.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <!-- HOME PAGE ONLY -->
+      <div class="home-page" id="homePage">
+        <div class="home-content">
+          <div class="logo">💻</div>
+          <h1>Code Sync</h1>
+          <p>Real-time Collaborative Code Editor for Teams</p>
+          <p style="font-size: 0.95rem; margin-bottom: 30px;">Edit code together in real-time with instant synchronization and seamless collaboration</p>
+
+          <div class="button-group">
+            <button class="btn btn-primary" onclick="window.location.href='/user-login.html'">User Login</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/admin-login.html'">Admin Login</button>
+            <button class="btn btn-primary" onclick="enterAsGuest()" style="background: rgba(100, 200, 255, 0.1); border: 2px solid var(--primary);">Continue as Guest</button>
+          </div>
+
+          <div class="features">
+            <div class="feature-card">
+              <div class="icon">⚡</div>
+              <h3>Real-time Sync</h3>
+              <p>Instant code synchronization across all users</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon">👥</div>
+              <h3>Collaboration</h3>
+              <p>Work together seamlessly with teammates</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon">🔒</div>
+              <h3>Secure</h3>
+              <p>Enterprise-grade security and encryption</p>
+            </div>
+            <div class="feature-card">
+              <div class="icon">🎨</div>
+              <h3>Themes</h3>
+              <p>Beautiful code editor with multiple themes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function enterAsGuest() {
+        localStorage.setItem('userRole', 'guest');
+        localStorage.setItem('timestamp', new Date().getTime());
+        window.location.href = '/editor.html';
+      }
+    </script>
+  </body>
+</html>

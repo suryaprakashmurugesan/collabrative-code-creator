@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code Generator - Code Sync</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #64c8ff;
+        --secondary: #d464ff;
+        --dark: #0f0c29;
+        --darker: #1a1a2e;
+        --light: #ffffff;
+        --accent: #24243e;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background: linear-gradient(-45deg, var(--dark), #302b63, var(--accent), var(--darker));
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+        color: var(--light);
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+        margin-top: 20px;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        color: #b0d4ff;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+
+      .section {
+        background: rgba(42, 45, 56, 0.7);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(100, 200, 255, 0.1);
+      }
+
+      .section h2 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+        border-bottom: 2px solid rgba(100, 200, 255, 0.2);
+        padding-bottom: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--light);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .code-display {
+        background: rgba(20, 20, 35, 0.9);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--primary);
+        max-height: 500px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 300px;
+      }
+
+      .empty-state {
+        color: rgba(255, 255, 255, 0.5);
+        text-align: center;
+        padding: 60px 20px;
+        font-style: italic;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        flex: 1;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #4db8ff);
+        color: var(--dark);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(100, 200, 255, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, var(--secondary), #e680ff);
+        color: var(--light);
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 100, 255, 0.4);
+      }
+
+      .back-button {
+        display: inline-block;
+        background: rgba(100, 200, 255, 0.2);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        padding: 10px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .back-button:hover {
+        background: rgba(100, 200, 255, 0.3);
+        transform: translateX(-5px);
+      }
+
+      @media (max-width: 768px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(100, 200, 255, 0.1);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(100, 200, 255, 0.3);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 200, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/" class="back-button">← Back to Home</a>
+      
+      <div class="header">
+        <h1>⚡ Code Generator</h1>
+        <p>Enter code topic and get the exact code you need</p>
+      </div>
+
+      <div class="content">
+        <!-- INPUT SECTION -->
+        <div class="section">
+          <h2>Enter Code Topic</h2>
+          
+          <div class="form-group">
+            <label for="topicInput">What code do you need?</label>
+            <input 
+              type="text" 
+              id="topicInput" 
+              placeholder="e.g., Python counter app, JavaScript todo list, HTML form..."
+            />
+          </div>
+
+          <div class="button-group">
+            <button class="btn btn-primary" onclick="generateCode()">Generate Code</button>
+            <button class="btn btn-secondary" onclick="clearCode()">Clear</button>
+          </div>
+        </div>
+
+        <!-- OUTPUT SECTION -->
+        <div class="section">
+          <h2>Generated Code</h2>
+          <div id="codeOutput" class="code-display">
+            <div class="empty-state">Enter a topic and click Generate Code...</div>
+          </div>
+          <button class="btn btn-secondary" onclick="copyCode()" style="margin-top: 15px; width: 100%;">📋 Copy Code</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function generateCode() {
+        var topicInput = document.getElementById('topicInput');
+        var codeOutput = document.getElementById('codeOutput');
+        var topic = topicInput.value.trim();
+        
+        if (!topic) {
+          alert('Please enter a code topic');
+          return;
+        }
+
+        var code = getCodeTemplate(topic);
+        codeOutput.textContent = code;
+        console.log('Code generated for: ' + topic);
+      }
+
+      function getCodeTemplate(topic) {
+        var lowerTopic = topic.toLowerCase();
+        var code = '';
+
+        // React Counter App
+        if (lowerTopic.indexOf('react') !== -1 && (lowerTopic.indexOf('counter') !== -1 || lowerTopic.indexOf('app') !== -1)) {
+          code = 'import React, { useState } from "react";\n\n';
+          code += 'export default function CounterApp() {\n';
+          code += '  const [count, setCount] = useState(0);\n\n';
+          code += '  return (\n';
+          code += '    <div style={styles.container}>\n';
+          code += '      <h1>Counter App</h1>\n';
+          code += '      <p style={styles.display}>Count: {count}</p>\n';
+          code += '      <div style={styles.buttonGroup}>\n';
+          code += '        <button onClick={() => setCount(count + 1)}>Increment</button>\n';
+          code += '        <button onClick={() => setCount(count - 1)}>Decrement</button>\n';
+          code += '        <button onClick={() => setCount(0)}>Reset</button>\n';
+          code += '      </div>\n';
+          code += '    </div>\n';
+          code += '  );\n';
+          code += '}\n\n';
+          code += 'const styles = {\n';
+          code += '  container: { textAlign: "center", padding: "40px", fontFamily: "Arial" },\n';
+          code += '  display: { fontSize: "48px", fontWeight: "bold", color: "#0066cc" },\n';
+          code += '  buttonGroup: { marginTop: "20px" }\n';
+          code += '};\n';
+          return code;
+        }
+
+        // Flask API
+        if (lowerTopic.indexOf('flask') !== -1 || (lowerTopic.indexOf('python') !== -1 && lowerTopic.indexOf('api') !== -1)) {
+          code = 'from flask import Flask, jsonify, request\n\n';
+          code += 'app = Flask(__name__)\n\n';
+          code += '@app.route("/", methods=["GET"])\n';
+          code += 'def home():\n';
+          code += '    return jsonify({"message": "Welcome to Flask API"})\n\n';
+          code += '@app.route("/api/users", methods=["GET"])\n';
+          code += 'def get_users():\n';
+          code += '    users = [\n';
+          code += '        {"id": 1, "name": "John", "email": "john@example.com"},\n';
+          code += '        {"id": 2, "name": "Jane", "email": "jane@example.com"}\n';
+          code += '    ]\n';
+          code += '    return jsonify(users)\n\n';
+          code += '@app.route("/api/users", methods=["POST"])\n';
+          code += 'def create_user():\n';
+          code += '    data = request.get_json()\n';
+          code += '    return jsonify({"success": True, "user": data}), 201\n\n';
+          code += '@app.errorhandler(404)\n';
+          code += 'def not_found(error):\n';
+          code += '    return jsonify({"error": "Not found"}), 404\n\n';
+          code += 'if __name__ == "__main__":\n';
+          code += '    app.run(debug=True, port=5000)\n';
+          return code;
+        }
+
+        // Python Todo App
+        if (lowerTopic.indexOf('python') !== -1 && lowerTopic.indexOf('todo') !== -1) {
+          code = 'class TodoApp:\n';
+          code += '    def __init__(self):\n';
+          code += '        self.todos = []\n\n';
+          code += '    def add_todo(self, task):\n';
+          code += '        todo = {"id": len(self.todos) + 1, "task": task, "done": False}\n';
+          code += '        self.todos.append(todo)\n';
+          code += '        print(f"Added: {task}")\n\n';
+          code += '    def remove_todo(self, todo_id):\n';
+          code += '        self.todos = [t for t in self.todos if t["id"] != todo_id]\n';
+          code += '        print(f"Removed task {todo_id}")\n\n';
+          code += '    def mark_done(self, todo_id):\n';
+          code += '        for todo in self.todos:\n';
+          code += '            if todo["id"] == todo_id:\n';
+          code += '                todo["done"] = True\n\n';
+          code += '    def show_todos(self):\n';
+          code += '        for todo in self.todos:\n';
+          code += '            status = "✓" if todo["done"] else "○"\n';
+          code += '            print(f"{status} {todo["task"]}")\n\n';
+          code += 'if __name__ == "__main__":\n';
+          code += '    app = TodoApp()\n';
+          code += '    app.add_todo("Learn Python")\n';
+          code += '    app.add_todo("Build Apps")\n';
+          code += '    app.show_todos()\n';
+          return code;
+        }
+
+        // JavaScript Todo List
+        if (lowerTopic.indexOf('javascript') !== -1 || lowerTopic.indexOf('js') !== -1) {
+          code = 'class TodoList {\n';
+          code += '  constructor() {\n';
+          code += '    this.todos = [];\n';
+          code += '    this.nextId = 1;\n';
+          code += '  }\n\n';
+          code += '  addTodo(text) {\n';
+          code += '    const todo = { id: this.nextId++, text: text, completed: false };\n';
+          code += '    this.todos.push(todo);\n';
+          code += '    return todo;\n';
+          code += '  }\n\n';
+          code += '  removeTodo(id) {\n';
+          code += '    this.todos = this.todos.filter(t => t.id !== id);\n';
+          code += '  }\n\n';
+          code += '  toggleTodo(id) {\n';
+          code += '    const todo = this.todos.find(t => t.id === id);\n';
+          code += '    if (todo) todo.completed = !todo.completed;\n';
+          code += '  }\n\n';
+          code += '  getTodos() {\n';
+          code += '    return this.todos;\n';
+          code += '  }\n';
+          code += '}\n\n';
+          code += 'const todoList = new TodoList();\n';
+          code += 'todoList.addTodo("Learn JavaScript");\n';
+          code += 'todoList.addTodo("Build Projects");\n';
+          code += 'console.log(todoList.getTodos());\n';
+          return code;
+        }
+
+        // HTML Form
+        if (lowerTopic.indexOf('html') !== -1 || lowerTopic.indexOf('form') !== -1) {
+          code = '<!DOCTYPE html>\n';
+          code += '<html lang="en">\n';
+          code += '<head>\n';
+          code += '    <meta charset="UTF-8">\n';
+          code += '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+          code += '    <title>Contact Form</title>\n';
+          code += '    <style>\n';
+          code += '        * { margin: 0; padding: 0; box-sizing: border-box; }\n';
+          code += '        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }\n';
+          code += '        .container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n';
+          code += '        h1 { color: #333; margin-bottom: 20px; }\n';
+          code += '        .form-group { margin-bottom: 15px; }\n';
+          code += '        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; }\n';
+          code += '        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }\n';
+          code += '        button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }\n';
+          code += '        button:hover { background: #0052a3; }\n';
+          code += '    </style>\n';
+          code += '</head>\n';
+          code += '<body>\n';
+          code += '    <div class="container">\n';
+          code += '        <h1>Contact Us</h1>\n';
+          code += '        <form onsubmit="submitForm(event)">\n';
+          code += '            <div class="form-group">\n';
+          code += '                <label>Name:</label>\n';
+          code += '                <input type="text" name="name" required>\n';
+          code += '            </div>\n';
+          code += '            <div class="form-group">\n';
+          code += '                <label>Email:</label>\n';
+          code += '                <input type="email" name="email" required>\n';
+          code += '            </div>\n';
+          code += '            <div class="form-group">\n';
+          code += '                <label>Message:</label>\n';
+          code += '                <textarea name="message" rows="5" required></textarea>\n';
+          code += '            </div>\n';
+          code += '            <button type="submit">Submit</button>\n';
+          code += '        </form>\n';
+          code += '    </div>\n';
+          code += '    <script>\n';
+          code += '        function submitForm(e) {\n';
+          code += '            e.preventDefault();\n';
+          code += '            alert("Form submitted successfully!");\n';
+          code += '        }\n';
+          code += '    </script>\n';
+          code += '</body>\n';
+          code += '</html>\n';
+          return code;
+        }
+
+        // Node.js Express API
+        if (lowerTopic.indexOf('node') !== -1 || lowerTopic.indexOf('express') !== -1) {
+          code = 'const express = require("express");\n';
+          code += 'const app = express();\n\n';
+          code += 'app.use(express.json());\n\n';
+          code += 'app.get("/", (req, res) => {\n';
+          code += '  res.json({ message: "Welcome to Node.js API" });\n';
+          code += '});\n\n';
+          code += 'app.get("/api/users", (req, res) => {\n';
+          code += '  const users = [\n';
+          code += '    { id: 1, name: "John", email: "john@example.com" },\n';
+          code += '    { id: 2, name: "Jane", email: "jane@example.com" }\n';
+          code += '  ];\n';
+          code += '  res.json(users);\n';
+          code += '});\n\n';
+          code += 'app.post("/api/users", (req, res) => {\n';
+          code += '  const newUser = req.body;\n';
+          code += '  res.status(201).json({ success: true, user: newUser });\n';
+          code += '});\n\n';
+          code += 'const PORT = 3000;\n';
+          code += 'app.listen(PORT, () => {\n';
+          code += '  console.log(`Server running on port ${PORT}`);\n';
+          code += '});\n';
+          return code;
+        }
+
+        // Python Calculator
+        if (lowerTopic.indexOf('python') !== -1 && lowerTopic.indexOf('calculator') !== -1) {
+          code = 'class Calculator:\n';
+          code += '    def add(self, a, b):\n';
+          code += '        return a + b\n\n';
+          code += '    def subtract(self, a, b):\n';
+          code += '        return a - b\n\n';
+          code += '    def multiply(self, a, b):\n';
+          code += '        return a * b\n\n';
+          code += '    def divide(self, a, b):\n';
+          code += '        if b == 0:\n';
+          code += '            return "Error: Cannot divide by zero"\n';
+          code += '        return a / b\n\n';
+          code += 'def main():\n';
+          code += '    calc = Calculator()\n';
+          code += '    print("Calculator App")\n';
+          code += '    print(f"5 + 3 = {calc.add(5, 3)}")\n';
+          code += '    print(f"10 - 4 = {calc.subtract(10, 4)}")\n';
+          code += '    print(f"7 * 8 = {calc.multiply(7, 8)}")\n';
+          code += '    print(f"20 / 4 = {calc.divide(20, 4)}")\n\n';
+          code += 'if __name__ == "__main__":\n';
+          code += '    main()\n';
+          return code;
+        }
+
+        // Default Python
+        code = 'def main():\n';
+        code += '    print("Starting: ' + topic + '")\n';
+        code += '    # Your code implementation here\n';
+        code += '    execute()\n\n';
+        code += 'def execute():\n';
+        code += '    print("Executing ' + topic + '")\n';
+        code += '    pass\n\n';
+        code += 'if __name__ == "__main__":\n';
+        code += '    main()\n';
+
+        return code;
+      }
+
+      function copyCode() {
+        var codeOutput = document.getElementById('codeOutput');
+        var text = codeOutput.textContent;
+        
+        if (text.indexOf('Enter a topic') !== -1) {
+          alert('Please generate code first!');
+          return;
+        }
+
+        navigator.clipboard.writeText(text).then(function() {
+          alert('Code copied to clipboard!');
+        }).catch(function(err) {
+          alert('Failed to copy: ' + err);
+        });
+      }
+
+      function clearCode() {
+        document.getElementById('topicInput').value = '';
+        document.getElementById('codeOutput').innerHTML = '<div class="empty-state">Enter a topic and click Generate Code...</div>';
+      }
+    </script>
+  </body>
+</html>
